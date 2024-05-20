@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const { GetObjectCommand, S3Client } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const HttpStatus = require("http-status-codes");
 const mongoose = require("mongoose");
 const Video = require("../models/Video"); // Ensure the path is correct
@@ -35,20 +34,36 @@ router.get("/random-video", async (req, res) => {
     }
 
     const videoData = video[0];
-    console.log("Video data retrieved:", videoData);
+    const range = req.headers.range;
+    if (!range) {
+      return res.status(HttpStatus.BAD_REQUEST).send("Range header required");
+    }
 
-    const videoKey = videoData.url; // Ensure this is the S3 key
+    const videoSize = videoData.size; // Ensure 'size' field in videoData contains the size of the video
+    const CHUNK_SIZE = 10 ** 6; // 1MB chunks
+    const start = Number(range.replace(/\D/g, ""));
+    const end = Math.min(start + CHUNK_SIZE, videoSize - 1);
+
+    const contentLength = end - start + 1;
+    const headers = {
+      "Content-Range": `bytes ${start}-${end}/${videoSize}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": contentLength,
+      "Content-Type": "video/mp4", // Change as necessary
+    };
+
+    res.writeHead(206, headers);
+
     const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: videoKey,
+      Key: videoData.url,
+      Range: `bytes=${start}-${end}`,
     });
 
-    const videoUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 });
+    const response = await s3Client.send(command);
+    const stream = response.Body;
 
-    res.json({
-      ...videoData,
-      url: videoUrl, // Override the url with the signed URL
-    });
+    stream.pipe(res);
   } catch (err) {
     console.error("Random video fetch error:", err);
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).send("Server error");
