@@ -26,7 +26,7 @@ router.get("/random-video", async (req, res) => {
     if (currentVideoId) {
       query.unshift({
         $match: { _id: { $ne: new mongoose.Types.ObjectId(currentVideoId) } },
-      }); // Exclude the current video only if ID is provided
+      });
     }
 
     const video = await Video.aggregate(query);
@@ -46,6 +46,8 @@ router.get("/random-video", async (req, res) => {
 
     const videoUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 });
 
+    // Set Cache-Control header to cache the video for one week
+    res.setHeader('Cache-Control', 'public, max-age=604800'); // 604800 seconds = 1 week
     res.json({
       ...videoData,
       url: videoUrl, // Override the url with the signed URL
