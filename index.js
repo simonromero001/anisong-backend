@@ -6,7 +6,6 @@ const cors = require("cors");
 const helmet = require("helmet");
 
 const app = express();
-const Video = require("./models/Video"); // Import the Video model
 const videoRoutes = require("./routes/videos");
 
 // Middleware
@@ -45,7 +44,7 @@ app.use((err, req, res, next) => {
 
 // Ensure necessary environment variables are set
 if (!process.env.MONGODB_URI ) {
-  throw new Error("Missing MONGO_URI. Please check your .env file.");
+  throw new Error("Missing MONGODB_URI. Please check your .env file.");
 }
 
 if (!process.env.AWS_ACCESS_KEY_ID) {

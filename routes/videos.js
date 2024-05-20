@@ -1,21 +1,24 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const AWS = require('aws-sdk');
-const HttpStatus = require('http-status-codes');
-const mongoose = require('mongoose');
-const Video = require('../models/Video'); // Ensure the path is correct
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-});
+const s3Client = new S3Client({
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+  region: 'us-west-1',
+})
 
-const s3 = new AWS.S3();
+const HttpStatus = require("http-status-codes");
+const mongoose = require("mongoose");
+const Video = require("../models/Video"); // Ensure the path is correct
+
 const bucketName = process.env.S3_BUCKET_NAME;
 
 // Get a random video
-router.get('/random-video', async (req, res) => {
+router.get("/random-video", async (req, res) => {
   try {
     const currentVideoId = req.query.currentVideoId;
     let query = [{ $sample: { size: 1 } }];
@@ -29,48 +32,50 @@ router.get('/random-video', async (req, res) => {
     const video = await Video.aggregate(query);
 
     if (!video.length) {
-      return res.status(HttpStatus.NOT_FOUND).send('No videos found');
+      return res.status(HttpStatus.NOT_FOUND).send("No videos found");
     }
 
     const videoData = video[0];
-    const videoUrl = s3.getSignedUrl('getObject', {
+    const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: videoData.url, // Assuming url is the S3 key for the video
-      Expires: 60, // URL expires in 60 seconds
-    });
+      Key: videoData.url,
+    })
+    const videoUrl = getSignedUrl(s3Client, command);
 
     res.json({
       ...videoData,
       url: videoUrl, // Override the url with the signed URL
     });
   } catch (err) {
-    console.error('Random video fetch error:', err);
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Server error');
+    console.error("Random video fetch error:", err);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).send("Server error");
   }
 });
 
 // Check answer
-router.post('/videos/:id/guess', async (req, res) => {
+router.post("/videos/:id/guess", async (req, res) => {
   try {
     const { guess } = req.body;
-    if (!guess || typeof guess !== 'string') {
+    if (!guess || typeof guess !== "string") {
       return res
         .status(HttpStatus.BAD_REQUEST)
-        .json({ message: 'Invalid guess provided' });
+        .json({ message: "Invalid guess provided" });
     }
     const video = await Video.findById(req.params.id);
 
     if (!video) {
       return res
         .status(HttpStatus.NOT_FOUND)
-        .json({ message: 'Video not found' });
+        .json({ message: "Video not found" });
     }
 
     const isCorrect = video.word.toLowerCase() === guess.toLowerCase();
     res.json({ correct: isCorrect });
   } catch (err) {
-    console.error('Guess check error:', err);
-    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
+    console.error("Guess check error:", err);
+    res
+      .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      .json({ message: "Server error" });
   }
 });
 
