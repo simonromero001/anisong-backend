@@ -44,7 +44,7 @@ router.get("/random-video", async (req, res) => {
       Key: videoKey,
     });
 
-    const videoUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 });
+    const videoUrl = await getSignedUrl(s3Client, command);
 
     // Set Cache-Control header to cache the video for one week
     res.setHeader('Cache-Control', 'public, max-age=604800'); // 604800 seconds = 1 week
