@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-
+const { GetObjectCommand, S3Client } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const s3Client = new S3Client({
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
