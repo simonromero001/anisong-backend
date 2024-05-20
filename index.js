@@ -55,7 +55,7 @@ async function addVideo() {
   try {
     await dropDatabase();
     const video1 = await Video.create({
-      url: "http://localhost:5000/videos/HanaNiNatte.mp4",
+      url: "http://s3.amazonaws.com/anisongs/HanaNiNatte.mp4",
       sentence: "＿になって　ほらニヒルに笑って",
       word: "花",
       startTime: 59500,
@@ -63,7 +63,7 @@ async function addVideo() {
     });
 
     const video2 = await Video.create({
-      url: "http://localhost:5000/videos/HanaNiNatte.mp4",
+      url: "http://s3.amazonaws.com/anisongs/HanaNiNatte.mp4",
       sentence: "その＿にぞくぞくして目が離せない",
       word: "顔",
       startTime: 64600,
