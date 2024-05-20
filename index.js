@@ -9,23 +9,22 @@ const Video = require("./models/Video");
 const videoRoutes = require("./routes/videos");
 
 // Middleware
-app.use(
-  cors({
-    origin: "http://localhost:3000", // Change to your frontend URL in production
-  })
-);
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:3000", // Change to your frontend URL in production
+}));
 app.use(express.json());
-app.use("/videos", express.static("public/videos"));
+app.use("/videos", express.static("public/videos")); // Ensure you have the videos in a public directory
 app.use("/api", videoRoutes);
 
 // MongoDB Connection
-// Connect to MongoDB without deprecated options
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log("MongoDB Connected");
-    // Call the addVideo function here, after the connection is established
-    addVideo();
+    addVideo(); // Call addVideo function after connection is established
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
@@ -36,32 +35,34 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
+// Function to drop the database
 async function dropDatabase() {
   await mongoose.connection.dropDatabase();
   console.log("Database dropped.");
 }
 
-// Function to add a video document
+// Function to add video documents
 async function addVideo() {
   try {
-    dropDatabase();
-    const video = await Video.create({
+    await dropDatabase();
+    const video1 = await Video.create({
       url: "http://localhost:5000/videos/HanaNiNatte.mp4",
       sentence: "＿になって　ほらニヒルに笑って",
       word: "花",
-      startTime: 59500, // startTime in milliseconds (e.g., 10 seconds)
+      startTime: 59500,
       endTime: 64600,
     });
 
     const video2 = await Video.create({
-        url: "http://localhost:5000/videos/HanaNiNatte.mp4",
-        sentence: "その＿にぞくぞくして目が離せない",
-        word: "顔",
-        startTime: 64600, // startTime in milliseconds (e.g., 10 seconds)
-        endTime: 69600,
-      });
-    console.log("Video added:", video);
-    console.log("Video2 added:", video2);
+      url: "http://localhost:5000/videos/HanaNiNatte.mp4",
+      sentence: "その＿にぞくぞくして目が離せない",
+      word: "顔",
+      startTime: 64600,
+      endTime: 69600,
+    });
+
+    console.log("Video added:", video1);
+    console.log("Video added:", video2);
   } catch (error) {
     console.error("Error adding video:", error);
   }
