@@ -3,12 +3,13 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const helmet = require("helmet");
 
 const app = express();
-const Video = require("./models/Video");
 const videoRoutes = require("./routes/videos");
 
 // Middleware
+app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:3000", // Change to your frontend URL in production
 }));
@@ -24,7 +25,9 @@ mongoose
   })
   .then(() => {
     console.log("MongoDB Connected");
-    addVideo(); // Call addVideo function after connection is established
+    if (process.env.NODE_ENV !== 'production') {
+      addVideo(); // Call addVideo function only in non-production environments
+    }
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
@@ -33,6 +36,12 @@ mongoose
 // Define routes
 app.get("/", (req, res) => {
   res.send("Hello World!");
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
 });
 
 // Function to drop the database
@@ -66,6 +75,11 @@ async function addVideo() {
   } catch (error) {
     console.error("Error adding video:", error);
   }
+}
+
+// Ensure necessary environment variables are set
+if (!process.env.MONGO_URI || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.S3_BUCKET_NAME) {
+  throw new Error("Missing necessary environment variables. Please check your .env file.");
 }
 
 const PORT = process.env.PORT || 5000;
