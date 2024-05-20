@@ -12,7 +12,7 @@ const s3Client = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
   region: 'us-west-1',
-  endpoint: `https://s3-accelerate.amazonaws.com`,
+  //endpoint: `https://s3-accelerate.amazonaws.com`,
 });
 
 const bucketName = process.env.S3_BUCKET_NAME;

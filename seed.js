@@ -28,7 +28,7 @@ async function addVideo() {
   try {
     await dropDatabase();
     const video1 = await Video.create({
-      url: "HanaNiNatte.mp4",
+      url: "HanaNiNatte.webm",
       sentence: "＿になって　ほらニヒルに笑って",
       word: "花",
       startTime: 59500,
@@ -36,7 +36,7 @@ async function addVideo() {
     });
 
     const video2 = await Video.create({
-      url: "HanaNiNatte.mp4",
+      url: "HanaNiNatte.webm",
       sentence: "その＿にぞくぞくして目が離せない",
       word: "顔",
       startTime: 64600,
