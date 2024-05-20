@@ -35,11 +35,15 @@ router.get("/random-video", async (req, res) => {
     }
 
     const videoData = video[0];
+    console.log("Video data retrieved:", videoData);
+
+    const videoKey = videoData.url; // Ensure this is the S3 key
     const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: videoData.url,
+      Key: videoKey,
     });
-    const videoUrl = await getSignedUrl(s3Client, command);
+
+    const videoUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 });
 
     res.json({
       ...videoData,
