@@ -12,6 +12,8 @@ const videoRoutes = require("./routes/videos");
 app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:3000", // Change to your frontend URL in production
+  methods: 'GET,POST',
+  allowedHeaders: 'Content-Type'
 }));
 app.use(express.json());
 app.use("/api", videoRoutes);
