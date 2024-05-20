@@ -78,8 +78,20 @@ async function addVideo() {
 }
 
 // Ensure necessary environment variables are set
-if (!process.env.MONGO_URI || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.S3_BUCKET_NAME) {
-  throw new Error("Missing necessary environment variables. Please check your .env file.");
+if (!process.env.MONGO_URI ) {
+  throw new Error("Missing MONGO_URI. Please check your .env file.");
+}
+
+if (!process.env.AWS_ACCESS_KEY_ID) {
+  throw new Error("Missing AWS_ACCESS_KEY_ID. Please check your .env file.");
+}
+
+if (!process.env.AWS_SECRET_ACCESS_KEY) {
+  throw new Error("Missing AWS_SECRET_ACCESS_KEY. Please check your .env file.");
+}
+
+if (!process.env.S3_BUCKET_NAME) {
+  throw new Error("Missing S3_BUCKET_NAME. Please check your .env file.");
 }
 
 const PORT = process.env.PORT || 5000;
