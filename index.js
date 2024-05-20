@@ -6,6 +6,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 
 const app = express();
+const Video = require("./models/Video"); // Import the Video model
 const videoRoutes = require("./routes/videos");
 
 // Middleware
@@ -14,7 +15,6 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:3000", // Change to your frontend URL in production
 }));
 app.use(express.json());
-app.use("/videos", express.static("public/videos")); // Ensure you have the videos in a public directory
 app.use("/api", videoRoutes);
 
 // MongoDB Connection
