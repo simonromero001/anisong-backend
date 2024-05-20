@@ -42,8 +42,6 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!');
 });
 
-
-
 // Ensure necessary environment variables are set
 if (!process.env.MONGODB_URI ) {
   throw new Error("Missing MONGODB_URI. Please check your .env file.");
