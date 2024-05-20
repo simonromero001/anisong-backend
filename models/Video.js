@@ -5,12 +5,14 @@ const videoSchema = new mongoose.Schema({
   url: {
     type: String,
     required: true,
+    /*
     validate: {
       validator: function(v) {
         return /^(http|https):\/\/[^ "]+$/.test(v);
       },
       message: props => `${props.value} is not a valid URL!`
     }
+    */
   },
   sentence: {
     type: String,
