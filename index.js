@@ -19,7 +19,7 @@ app.use("/api", videoRoutes);
 
 // MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI, {
+  .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -78,7 +78,7 @@ async function addVideo() {
 }
 
 // Ensure necessary environment variables are set
-if (!process.env.MONGO_URI ) {
+if (!process.env.MONGODB_URI ) {
   throw new Error("Missing MONGO_URI. Please check your .env file.");
 }
 
