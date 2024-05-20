@@ -2,17 +2,17 @@ const express = require("express");
 const router = express.Router();
 const { GetObjectCommand, S3Client } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const HttpStatus = require("http-status-codes");
+const mongoose = require("mongoose");
+const Video = require("../models/Video"); // Ensure the path is correct
+
 const s3Client = new S3Client({
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
   region: 'us-west-1',
-})
-
-const HttpStatus = require("http-status-codes");
-const mongoose = require("mongoose");
-const Video = require("../models/Video"); // Ensure the path is correct
+});
 
 const bucketName = process.env.S3_BUCKET_NAME;
 
@@ -38,8 +38,8 @@ router.get("/random-video", async (req, res) => {
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: videoData.url,
-    })
-    const videoUrl = getSignedUrl(s3Client, command);
+    });
+    const videoUrl = await getSignedUrl(s3Client, command);
 
     res.json({
       ...videoData,
