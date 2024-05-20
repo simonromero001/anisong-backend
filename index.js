@@ -25,9 +25,6 @@ mongoose
   })
   .then(() => {
     console.log("MongoDB Connected");
-    if (process.env.NODE_ENV !== 'production') {
-      addVideo(); // Call addVideo function only in non-production environments
-    }
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
@@ -44,38 +41,7 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!');
 });
 
-// Function to drop the database
-async function dropDatabase() {
-  await mongoose.connection.dropDatabase();
-  console.log("Database dropped.");
-}
 
-// Function to add video documents
-async function addVideo() {
-  try {
-    await dropDatabase();
-    const video1 = await Video.create({
-      url: "http://s3.amazonaws.com/anisongs/HanaNiNatte.mp4",
-      sentence: "＿になって　ほらニヒルに笑って",
-      word: "花",
-      startTime: 59500,
-      endTime: 64600,
-    });
-
-    const video2 = await Video.create({
-      url: "http://s3.amazonaws.com/anisongs/HanaNiNatte.mp4",
-      sentence: "その＿にぞくぞくして目が離せない",
-      word: "顔",
-      startTime: 64600,
-      endTime: 69600,
-    });
-
-    console.log("Video added:", video1);
-    console.log("Video added:", video2);
-  } catch (error) {
-    console.error("Error adding video:", error);
-  }
-}
 
 // Ensure necessary environment variables are set
 if (!process.env.MONGODB_URI ) {
