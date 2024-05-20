@@ -35,14 +35,18 @@ router.get("/random-video", async (req, res) => {
 
     const videoData = video[0];
     const range = req.headers.range;
-    if (!range) {
-      return res.status(HttpStatus.BAD_REQUEST).send("Range header required");
-    }
-
     const videoSize = videoData.size; // Ensure 'size' field in videoData contains the size of the video
-    const CHUNK_SIZE = 10 ** 6; // 1MB chunks
-    const start = Number(range.replace(/\D/g, ""));
-    const end = Math.min(start + CHUNK_SIZE, videoSize - 1);
+
+    let start, end;
+
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      start = parseInt(parts[0], 10);
+      end = parts[1] ? parseInt(parts[1], 10) : videoSize - 1;
+    } else {
+      start = videoData.startTime || 0;
+      end = videoData.endTime || videoSize - 1;
+    }
 
     const contentLength = end - start + 1;
     const headers = {
