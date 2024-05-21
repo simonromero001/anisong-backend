@@ -26,48 +26,27 @@ router.get('/random-video', async (req, res, next) => {
     });
 
     if (videosCount === 0) {
-      return res.status(HttpStatus.NOT_FOUND).json({ message: 'No videos found' });
+      return res.status(HttpStatus.NOT_FOUND).send('No videos found');
     }
 
     const randomSkip = Math.floor(Math.random() * videosCount);
 
-    const query = [
+    let query = [
       { $match: currentVideoId ? { _id: { $ne: new mongoose.Types.ObjectId(currentVideoId) } } : {} },
       { $skip: randomSkip },
-      { $limit: 1 },
+      { $sample: { size: 1 } },
     ];
 
     const video = await Video.aggregate(query);
 
-    const videoData = video[0];
-    const videoKey = videoData.url;
-    const command = new GetObjectCommand({
-      Bucket: bucketName,
-      Key: videoKey,
-    });
-
-    const videoUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-
-    // Create a simple ETag for the video data
-    const eTag = `W/"${Buffer.from(videoUrl).toString('base64')}"`;
-
-    // Set Cache-Control and ETag headers
-    const maxAge = 604800; // 604800 seconds = 1 week
-    res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
-    res.setHeader('ETag', eTag);
-    res.setHeader('Expires', new Date(Date.now() + maxAge * 1000).toUTCString());
-
-    // Check if the ETag matches the client's If-None-Match header
-    if (req.headers['if-none-match'] === eTag) {
-      return res.status(HttpStatus.NOT_MODIFIED).end();
+    if (!video.length) {
+      return res.status(HttpStatus.NOT_FOUND).send('No videos found');
     }
 
-    res.json({
-      ...videoData,
-      url: videoUrl,
-    });
+    res.json(video[0]);
   } catch (err) {
-    next(err); // Pass the error to the error handling middleware
+    console.error('Random video fetch error:', err);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Server error');
   }
 });
 
