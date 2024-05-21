@@ -20,13 +20,11 @@ const bucketName = process.env.S3_BUCKET_NAME;
 router.get('/random-video', async (req, res, next) => {
   try {
     const currentVideoId = req.query.currentVideoId;
-    let query = [{ $sample: { size: 1 } }];
 
-    if (currentVideoId) {
-      query.unshift({
-        $match: { _id: { $ne: new mongoose.Types.ObjectId(currentVideoId) } },
-      });
-    }
+    const query = [
+      { $match: currentVideoId ? { _id: { $ne: new mongoose.Types.ObjectId(currentVideoId) } } : {} },
+      { $sample: { size: 1 } },
+    ];
 
     const video = await Video.aggregate(query);
 
@@ -36,7 +34,6 @@ router.get('/random-video', async (req, res, next) => {
 
     const videoData = video[0];
     const videoKey = videoData.url;
-
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: videoKey,
