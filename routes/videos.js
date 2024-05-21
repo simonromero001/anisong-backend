@@ -39,6 +39,10 @@ router.get('/random-video', async (req, res, next) => {
 
     const video = await Video.aggregate(query);
 
+    if (!video || video.length === 0) {
+      return res.status(HttpStatus.NOT_FOUND).json({ message: 'No video found' });
+    }
+
     const videoData = video[0];
     const videoKey = videoData.url;
     const command = new GetObjectCommand({
@@ -48,7 +52,7 @@ router.get('/random-video', async (req, res, next) => {
 
     const videoUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 
-    // Create a simple ETag for the video data
+    // Create a simple ETag for the video URL
     const eTag = `W/"${Buffer.from(videoUrl).toString('base64')}"`;
 
     // Set Cache-Control and ETag headers
