@@ -40,22 +40,23 @@ router.get('/random-video', async (req, res, next) => {
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: videoKey,
-      Expires: 3600,
     });
 
-    const videoUrl = await getSignedUrl(s3Client, command);
+    const videoUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 
     // Create a simple ETag for the video data
     const eTag = `W/"${Buffer.from(videoUrl).toString('base64')}"`;
+
+    // Set Cache-Control and ETag headers
+    const maxAge = 604800; // 604800 seconds = 1 week
+    res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
+    res.setHeader('ETag', eTag);
+    res.setHeader('Expires', new Date(Date.now() + maxAge * 1000).toUTCString());
 
     // Check if the ETag matches the client's If-None-Match header
     if (req.headers['if-none-match'] === eTag) {
       return res.status(HttpStatus.NOT_MODIFIED).end();
     }
-
-    // Set Cache-Control and ETag headers
-    res.setHeader('Cache-Control', 'public, max-age=604800'); // 604800 seconds = 1 week
-    res.setHeader('ETag', eTag);
 
     res.json({
       ...videoData,
