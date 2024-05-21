@@ -21,16 +21,23 @@ router.get('/random-video', async (req, res, next) => {
   try {
     const currentVideoId = req.query.currentVideoId;
 
+    const videosCount = await Video.countDocuments({
+      _id: currentVideoId ? { $ne: new mongoose.Types.ObjectId(currentVideoId) } : {},
+    });
+
+    if (videosCount === 0) {
+      return res.status(HttpStatus.NOT_FOUND).json({ message: 'No videos found' });
+    }
+
+    const randomSkip = Math.floor(Math.random() * videosCount);
+
     const query = [
       { $match: currentVideoId ? { _id: { $ne: new mongoose.Types.ObjectId(currentVideoId) } } : {} },
-      { $sample: { size: 1 } },
+      { $skip: randomSkip },
+      { $limit: 1 },
     ];
 
     const video = await Video.aggregate(query);
-
-    if (!video.length) {
-      return res.status(HttpStatus.NOT_FOUND).json({ message: 'No videos found' });
-    }
 
     const videoData = video[0];
     const videoKey = videoData.url;
