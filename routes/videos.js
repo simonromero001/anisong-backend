@@ -16,6 +16,9 @@ const s3Client = new S3Client({
   //endpoint: `https://s3-accelerate.amazonaws.com`,
 });
 
+const bucketName = process.env.S3_BUCKET_NAME;
+
+// Get a random video
 // Get a random video
 router.get('/random-video', async (req, res, next) => {
   try {
@@ -38,9 +41,9 @@ router.get('/random-video', async (req, res, next) => {
     const videoKey = videoData.url;
 
     const command = new GetObjectCommand({
-      Bucket: S3_BUCKET_NAME,
+      Bucket: bucketName,
       Key: videoKey,
-      Expires: 3600, // 1 hour
+      Expires: 3600,
     });
 
     const videoUrl = await getSignedUrl(s3Client, command);
