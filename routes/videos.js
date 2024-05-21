@@ -6,19 +6,16 @@ const HttpStatus = require("http-status-codes");
 const mongoose = require("mongoose");
 const Video = require("../models/Video"); // Ensure the path is correct
 
-
 const s3Client = new S3Client({
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
   region: 'us-west-1',
-  //endpoint: `https://s3-accelerate.amazonaws.com`,
 });
 
 const bucketName = process.env.S3_BUCKET_NAME;
 
-// Get a random video
 // Get a random video
 router.get('/random-video', async (req, res, next) => {
   try {
@@ -48,8 +45,17 @@ router.get('/random-video', async (req, res, next) => {
 
     const videoUrl = await getSignedUrl(s3Client, command);
 
-    // Set Cache-Control header to cache the video for one week
+    // Create a simple ETag for the video data
+    const eTag = `W/"${Buffer.from(videoUrl).toString('base64')}"`;
+
+    // Check if the ETag matches the client's If-None-Match header
+    if (req.headers['if-none-match'] === eTag) {
+      return res.status(HttpStatus.NOT_MODIFIED).end();
+    }
+
+    // Set Cache-Control and ETag headers
     res.setHeader('Cache-Control', 'public, max-age=604800'); // 604800 seconds = 1 week
+    res.setHeader('ETag', eTag);
 
     res.json({
       ...videoData,
