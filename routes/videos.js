@@ -20,22 +20,15 @@ const bucketName = process.env.S3_BUCKET_NAME;
 router.get('/random-video', async (req, res, next) => {
   try {
     const currentVideoId = req.query.currentVideoId;
-
-    const videosCount = await Video.countDocuments({
-      _id: currentVideoId ? { $ne: new mongoose.Types.ObjectId(currentVideoId) } : {},
-    });
+    let query = [{ $sample: { size: 1 } }];
 
     if (videosCount === 0) {
       return res.status(HttpStatus.NOT_FOUND).send('No videos found');
     }
 
-    const randomSkip = Math.floor(Math.random() * videosCount);
-
-    let query = [
-      { $match: currentVideoId ? { _id: { $ne: new mongoose.Types.ObjectId(currentVideoId) } } : {} },
-      { $skip: randomSkip },
-      { $sample: { size: 1 } },
-    ];
+    if (currentVideoId) {
+      query.unshift({ $match: { _id: { $ne: new mongoose.Types.ObjectId(currentVideoId) } } }); // Exclude the current video only if ID is provided
+    }
 
     const video = await Video.aggregate(query);
 
