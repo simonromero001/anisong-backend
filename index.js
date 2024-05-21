@@ -10,11 +10,13 @@ const videoRoutes = require("./routes/videos");
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000", // Change to your frontend URL in production
-  methods: 'GET,POST',
-  allowedHeaders: 'Content-Type'
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000", // Change to your frontend URL in production
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
+  })
+);
 app.use(express.json());
 app.use("/api", videoRoutes);
 
@@ -39,25 +41,21 @@ app.get("/", (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  res.status(500).send("Something broke!");
 });
 
 // Ensure necessary environment variables are set
-if (!process.env.MONGODB_URI ) {
-  throw new Error("Missing MONGODB_URI. Please check your .env file.");
-}
-
-if (!process.env.AWS_ACCESS_KEY_ID) {
-  throw new Error("Missing AWS_ACCESS_KEY_ID. Please check your .env file.");
-}
-
-if (!process.env.AWS_SECRET_ACCESS_KEY) {
-  throw new Error("Missing AWS_SECRET_ACCESS_KEY. Please check your .env file.");
-}
-
-if (!process.env.S3_BUCKET_NAME) {
-  throw new Error("Missing S3_BUCKET_NAME. Please check your .env file.");
-}
+const requiredEnvVars = [
+  "MONGODB_URI",
+  "AWS_ACCESS_KEY_ID",
+  "AWS_SECRET_ACCESS_KEY",
+  "S3_BUCKET_NAME",
+];
+requiredEnvVars.forEach((envVar) => {
+  if (!process.env[envVar]) {
+    throw new Error(`Missing ${envVar}. Please check your .env file.`);
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
